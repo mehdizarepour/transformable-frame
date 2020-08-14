@@ -29,8 +29,13 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: TransformableFrame()
+      body: Container(
+        color: Colors.black12,
+        child: Center(
+          child: TransformableFrame(
+            child: Text('Hello'),
+          )
+        )
       )
     );
   }
