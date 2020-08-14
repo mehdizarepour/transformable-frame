@@ -35,7 +35,7 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Center(
             child: TransformableFrame(
               child: Text(
-                'Hello Hello ',
+                'Hello Hello  Hello  Hello Hello Hello Hello Hello',
                 style: TextStyle(fontSize: 16),
               ),
             ),

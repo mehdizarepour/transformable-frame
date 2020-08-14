@@ -50,6 +50,11 @@ class _TransformableFrameState extends State<TransformableFrame> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       RenderBox renderBox = key.currentContext.findRenderObject();
 
+      centerPointX =
+          renderBox.localToGlobal(Offset.zero).dx + renderBox.size.width / 2;
+      centerPointY =
+          renderBox.localToGlobal(Offset.zero).dy + renderBox.size.height / 2;
+
       setWidth = renderBox.size.width;
       setHeight = renderBox.size.height;
     });
@@ -66,27 +71,24 @@ class _TransformableFrameState extends State<TransformableFrame> {
         key: key,
         height: height,
         width: width,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black12),
-          borderRadius: BorderRadius.circular(10),
-        ),
         child: Stack(
           children: [
-            Center(child: widget.child),
+            Container(
+              child: widget.child,
+              margin: EdgeInsets.all(5),
+              height: double.infinity,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
             Stack(
               children: [
                 Align(
                   alignment: Alignment.bottomLeft,
                   child: GestureDetector(
                     onPanStart: (dragDetails) {
-                      RenderBox renderBox =
-                          key.currentContext.findRenderObject();
-
-                      centerPointX = renderBox.localToGlobal(Offset.zero).dx +
-                          renderBox.size.width / 2;
-                      centerPointY = renderBox.localToGlobal(Offset.zero).dy +
-                          renderBox.size.height / 2;
-
                       startLocationX = dragDetails.globalPosition.dx;
                       startLocationY = dragDetails.globalPosition.dy;
                     },
