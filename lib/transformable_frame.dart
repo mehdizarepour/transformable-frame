@@ -9,8 +9,8 @@ class TransformableFrame extends StatefulWidget {
 
   TransformableFrame({
     @required this.child,
-    this.height = 100,
-    this.width = 200,
+    this.height,
+    this.width,
   });
 
   @override
@@ -46,6 +46,14 @@ class _TransformableFrameState extends State<TransformableFrame> {
     width = widget.width;
     height = widget.height;
 
+    /// Initialize frame size
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      RenderBox renderBox = key.currentContext.findRenderObject();
+
+      setWidth = renderBox.size.width;
+      setHeight = renderBox.size.height;
+    });
+
     super.initState();
   }
 
@@ -58,17 +66,13 @@ class _TransformableFrameState extends State<TransformableFrame> {
         key: key,
         height: height,
         width: width,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black12),
+          borderRadius: BorderRadius.circular(10),
+        ),
         child: Stack(
           children: [
-            Center(
-              child: Container(
-                width: width - 10,
-                height: height - 10,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black12),
-                ),
-              ),
-            ),
+            Center(child: widget.child),
             Stack(
               children: [
                 Align(
