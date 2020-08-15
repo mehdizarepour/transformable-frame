@@ -1,16 +1,22 @@
 library transformable_frame;
 
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 
 class TransformableFrame extends StatefulWidget {
   final Widget child;
+  final ValueChanged<Void> onCloseTap;
   final double height;
   final double width;
+  final bool showHandlers;
 
   TransformableFrame({
     @required this.child,
+    this.onCloseTap,
     this.height,
     this.width,
+    this.showHandlers = true,
   });
 
   @override
@@ -62,6 +68,53 @@ class _TransformableFrameState extends State<TransformableFrame> {
     super.initState();
   }
 
+  void _onTranslateStartHandler(dragDetails) {
+    startLocationX = dragDetails.globalPosition.dx;
+    startLocationY = dragDetails.globalPosition.dy;
+  }
+
+  void _onRotateHandler(dragUpdateDetails) {
+    setState(() {
+      double endLocationX = dragUpdateDetails.globalPosition.dx;
+      double endLocationY = dragUpdateDetails.globalPosition.dy;
+
+      double m1 =
+          (startLocationX - centerPointX) / (startLocationY - centerPointY);
+      double m2 = (endLocationX - centerPointX) / (endLocationY - centerPointY);
+
+      double angle = (m1 - m2) / (1 + m1 * m2);
+
+      matrix = matrix..rotateZ(angle);
+      startLocationX = endLocationX;
+      startLocationY = endLocationY;
+    });
+  }
+
+  void _onTranslateHandler(dragUpdateDetails) {
+    setState(() {
+      double endLocationX = dragUpdateDetails.delta.dx;
+      double endLocationY = dragUpdateDetails.delta.dy;
+
+      // centerPointX += endLocationX - startLocationX;
+      // centerPointY += endLocationY - startLocationY;
+
+      matrix = matrix..translate(endLocationX, endLocationY);
+    });
+  }
+
+  void _onScaleHandler(dragUpdateDetails) {
+    double endLocationX = dragUpdateDetails.globalPosition.dx;
+    double endLocationY = dragUpdateDetails.globalPosition.dy;
+
+    setState(() {
+      setWidth = width + (endLocationX - startLocationX);
+      setHeight = height + (endLocationY - startLocationY);
+
+      startLocationX = endLocationX;
+      startLocationY = endLocationY;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Transform(
@@ -88,123 +141,33 @@ class _TransformableFrameState extends State<TransformableFrame> {
                 Align(
                   alignment: Alignment.bottomLeft,
                   child: GestureDetector(
-                    onPanStart: (dragDetails) {
-                      startLocationX = dragDetails.globalPosition.dx;
-                      startLocationY = dragDetails.globalPosition.dy;
-                    },
-                    onPanUpdate: (dragUpdateDetails) {
-                      setState(() {
-                        double endLocationX =
-                            dragUpdateDetails.globalPosition.dx;
-                        double endLocationY =
-                            dragUpdateDetails.globalPosition.dy;
-
-                        double m1 = (startLocationX - centerPointX) /
-                            (startLocationY - centerPointY);
-                        double m2 = (endLocationX - centerPointX) /
-                            (endLocationY - centerPointY);
-
-                        double angle = (m1 - m2) / (1 + m1 * m2);
-
-                        matrix = matrix..rotateZ(angle);
-                        startLocationX = endLocationX;
-                        startLocationY = endLocationY;
-                      });
-                    },
-                    child: Container(
-                      width: 17,
-                      height: 17,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: Icon(
-                        Icons.rotate_right,
-                        size: 14,
-                      ),
-                    ),
+                    onPanStart: _onTranslateStartHandler,
+                    onPanUpdate: _onRotateHandler,
+                    child: _Handler(Icons.rotate_right),
                   ),
                 ),
                 Align(
                   alignment: Alignment.topLeft,
                   child: GestureDetector(
-                    onPanStart: (dragStartDetails) {
-                      startLocationX = dragStartDetails.globalPosition.dx;
-                      startLocationY = dragStartDetails.globalPosition.dy;
-                    },
-                    onPanUpdate: (dragUpdateDetails) {
-                      setState(() {
-                        double endLocationX = dragUpdateDetails.delta.dx;
-                        double endLocationY = dragUpdateDetails.delta.dy;
-
-                        // centerPointX += endLocationX - startLocationX;
-                        // centerPointY += endLocationY - startLocationY;
-
-                        matrix = matrix..translate(endLocationX, endLocationY);
-                      });
-                    },
-                    child: Container(
-                      width: 17,
-                      height: 17,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: Icon(
-                        Icons.open_with,
-                        size: 14,
-                      ),
-                    ),
+                    onPanStart: _onTranslateStartHandler,
+                    onPanUpdate: _onTranslateHandler,
+                    child: _Handler(Icons.open_with),
                   ),
                 ),
                 Align(
                   alignment: Alignment.bottomRight,
                   child: GestureDetector(
-                    onPanStart: (dragStartDetails) {
-                      startLocationX = dragStartDetails.globalPosition.dx;
-                      startLocationY = dragStartDetails.globalPosition.dy;
-                    },
-                    onPanUpdate: (dragUpdateDetails) {
-                      double endLocationX = dragUpdateDetails.globalPosition.dx;
-                      double endLocationY = dragUpdateDetails.globalPosition.dy;
-
-                      setState(() {
-                        setWidth = width + (endLocationX - startLocationX);
-                        setHeight = height + (endLocationY - startLocationY);
-
-                        startLocationX = endLocationX;
-                        startLocationY = endLocationY;
-                      });
-                    },
-                    child: Container(
-                      width: 17,
-                      height: 17,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: Icon(
-                        Icons.zoom_out_map,
-                        size: 14,
-                      ),
-                    ),
+                    onPanStart: _onTranslateStartHandler,
+                    onPanUpdate: _onScaleHandler,
+                    child: _Handler(Icons.zoom_out_map),
                   ),
                 ),
                 Align(
                   alignment: Alignment.topRight,
                   child: GestureDetector(
-                    child: Container(
-                      width: 17,
-                      height: 17,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                      child: Icon(
-                        Icons.close,
-                        size: 14,
-                      ),
-                    ),
+                    onTap: () =>
+                        widget.onCloseTap == null ? null : widget.onCloseTap,
+                    child: _Handler(Icons.close),
                   ),
                 ),
               ],
@@ -212,6 +175,25 @@ class _TransformableFrameState extends State<TransformableFrame> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _Handler extends StatelessWidget {
+  final IconData icon;
+
+  _Handler(this.icon);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 17,
+      height: 17,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Icon(icon, size: 14),
     );
   }
 }

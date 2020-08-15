@@ -33,11 +33,26 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Container(
           color: Colors.black12,
           child: Center(
-            child: TransformableFrame(
-              child: Text(
-                'Hello Hello  Hello  Hello Hello Hello Hello Hello',
-                style: TextStyle(fontSize: 16),
-              ),
+            child: Stack(
+              children: <Widget>[
+                TransformableFrame(
+                  onCloseTap: (_) {
+                    print('object');
+                  },
+                  child: Text(
+                    'Hello Hello Hello Hello Hello Hello Hello Hello',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ),
+                Center(
+                  child: TransformableFrame(
+                    onCloseTap: (_) {
+                      print('object');
+                    },
+                    child: Image.asset('assets/5.png'),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
