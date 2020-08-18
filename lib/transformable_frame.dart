@@ -1,12 +1,10 @@
 library transformable_frame;
 
-import 'dart:ffi';
-
 import 'package:flutter/material.dart';
 
 class TransformableFrame extends StatefulWidget {
   final Widget child;
-  final ValueChanged<Void> onCloseTap;
+  final ValueChanged<void> onCloseTap;
   final double height;
   final double width;
   final bool showHandlers;
