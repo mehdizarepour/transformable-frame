@@ -76,9 +76,12 @@ class _TransformableFrameState extends State<TransformableFrame> {
       double endLocationX = dragUpdateDetails.globalPosition.dx;
       double endLocationY = dragUpdateDetails.globalPosition.dy;
 
-      double m1 =
-          (startLocationX - centerPointX) / (startLocationY - centerPointY);
-      double m2 = (endLocationX - centerPointX) / (endLocationY - centerPointY);
+      double m1 = startLocationY - centerPointY == 0
+          ? 0
+          : (startLocationX - centerPointX) / (startLocationY - centerPointY);
+      double m2 = endLocationY - centerPointY == 0
+          ? 0
+          : (endLocationX - centerPointX) / (endLocationY - centerPointY);
 
       double angle = (m1 - m2) / (1 + m1 * m2);
 
@@ -88,19 +91,18 @@ class _TransformableFrameState extends State<TransformableFrame> {
     });
   }
 
-  void _onTranslateHandler(dragUpdateDetails) {
+  void _onTranslateHandler(DragUpdateDetails dragUpdateDetails) {
     setState(() {
       double endLocationX = dragUpdateDetails.delta.dx;
       double endLocationY = dragUpdateDetails.delta.dy;
-
-      // centerPointX += endLocationX - startLocationX;
-      // centerPointY += endLocationY - startLocationY;
+      centerPointX += endLocationX;
+      centerPointY += endLocationY;
 
       matrix = matrix..translate(endLocationX, endLocationY);
     });
   }
 
-  void _onScaleHandler(dragUpdateDetails) {
+  void _onResizeHandler(dragUpdateDetails) {
     double endLocationX = dragUpdateDetails.globalPosition.dx;
     double endLocationY = dragUpdateDetails.globalPosition.dy;
 
@@ -156,7 +158,7 @@ class _TransformableFrameState extends State<TransformableFrame> {
                   alignment: Alignment.bottomRight,
                   child: GestureDetector(
                     onPanStart: _onTranslateStartHandler,
-                    onPanUpdate: _onScaleHandler,
+                    onPanUpdate: _onResizeHandler,
                     child: _Handler(Icons.zoom_out_map),
                   ),
                 ),

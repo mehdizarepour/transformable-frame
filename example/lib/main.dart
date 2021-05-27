@@ -35,21 +35,15 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Center(
             child: Stack(
               children: <Widget>[
-                TransformableFrame(
-                  onCloseTap: (_) {
-                    print('object');
-                  },
-                  child: Text(
-                    'Hello Hello Hello Hello Hello Hello Hello Hello',
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ),
                 Center(
                   child: TransformableFrame(
                     onCloseTap: (_) {
                       print('object');
                     },
-                    child: Image.asset('assets/5.png'),
+                    child: Image.asset(
+                      'assets/5.png',
+                      fit: BoxFit.fill,
+                    ),
                   ),
                 ),
               ],
