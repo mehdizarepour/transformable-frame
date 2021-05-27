@@ -7,15 +7,15 @@ class TransformableFrame extends StatefulWidget {
   final Function onClose;
   final Function(Size) onResize;
   final Function(Matrix4) onTransform;
-  final double height;
-  final double width;
+  final Size size;
+  final Matrix4 matrix;
   final bool visable;
 
   TransformableFrame({
     @required this.child,
-    this.height,
-    this.width,
+    this.size,
     this.visable = true,
+    this.matrix,
     this.onClose,
     this.onResize,
     this.onTransform,
@@ -29,7 +29,7 @@ class _TransformableFrameState extends State<TransformableFrame> {
   final Size minSize = Size(35, 35);
   bool _visable;
 
-  Matrix4 matrix = Matrix4.identity();
+  Matrix4 matrix;
   GlobalKey key = GlobalKey();
 
   Offset centerPint;
@@ -50,7 +50,8 @@ class _TransformableFrameState extends State<TransformableFrame> {
   @override
   void initState() {
     _visable = widget.visable;
-    size = Size(widget.width, widget.height);
+    matrix = widget.matrix ?? Matrix4.identity();
+    size = widget.size ?? Size(double.infinity, double.infinity);
 
     /// Initialize frame size
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -167,10 +168,7 @@ class _TransformableFrameState extends State<TransformableFrame> {
                       child: GestureDetector(
                         onPanStart: _onTranslateStartHandler,
                         onPanUpdate: _onResizeHandler,
-                        child: Transform.rotate(
-                          angle: 40,
-                          child: _Handler(Icons.zoom_out_map),
-                        ),
+                        child: _Handler(Icons.zoom_out_map),
                       ),
                     ),
                     Align(

@@ -38,8 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 Center(
                   child: TransformableFrame(
                     visable: true,
-                    width: 100,
-                    height: 100,
+                    size: Size(100, 100),
                     onClose: () {
                       print('object');
                     },
