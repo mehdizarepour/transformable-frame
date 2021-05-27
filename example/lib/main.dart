@@ -37,7 +37,10 @@ class _MyHomePageState extends State<MyHomePage> {
               children: <Widget>[
                 Center(
                   child: TransformableFrame(
-                    onCloseTap: (_) {
+                    visable: true,
+                    width: 100,
+                    height: 100,
+                    onClose: () {
                       print('object');
                     },
                     child: Image.asset(

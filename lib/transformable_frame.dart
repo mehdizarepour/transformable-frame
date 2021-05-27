@@ -4,17 +4,21 @@ import 'package:flutter/material.dart';
 
 class TransformableFrame extends StatefulWidget {
   final Widget child;
-  final ValueChanged<void> onCloseTap;
+  final Function onClose;
+  final Function(Size) onResize;
+  final Function(Matrix4) onTransform;
   final double height;
   final double width;
-  final bool showHandlers;
+  final bool visable;
 
   TransformableFrame({
     @required this.child,
-    this.onCloseTap,
     this.height,
     this.width,
-    this.showHandlers = true,
+    this.visable = true,
+    this.onClose,
+    this.onResize,
+    this.onTransform,
   });
 
   @override
@@ -22,97 +26,100 @@ class TransformableFrame extends StatefulWidget {
 }
 
 class _TransformableFrameState extends State<TransformableFrame> {
-  final double minWidth = 35;
-  final double minHeight = 35;
+  final Size minSize = Size(35, 35);
+
   Matrix4 matrix = Matrix4.identity();
   GlobalKey key = GlobalKey();
 
-  double centerPointX;
-  double centerPointY;
+  Offset centerPint;
 
   /// Translate data
-  double startLocationX;
-  double startLocationY;
+  Offset startPoint;
 
-  /// Scale data
-  double width, height;
+  /// Resize data
+  Size size;
 
-  set setWidth(double value) {
-    width = value < minWidth ? minWidth : value;
-  }
-
-  set setHeight(double value) {
-    height = value < minHeight ? minHeight : value;
+  set setSize(Size value) {
+    size = Size(
+      value.width < minSize.width ? minSize.width : value.width,
+      value.height < minSize.height ? minSize.height : value.height,
+    );
   }
 
   @override
   void initState() {
-    width = widget.width;
-    height = widget.height;
+    size = Size(widget.width, widget.height);
 
     /// Initialize frame size
     WidgetsBinding.instance.addPostFrameCallback((_) {
       RenderBox renderBox = key.currentContext.findRenderObject();
 
-      centerPointX =
-          renderBox.localToGlobal(Offset.zero).dx + renderBox.size.width / 2;
-      centerPointY =
-          renderBox.localToGlobal(Offset.zero).dy + renderBox.size.height / 2;
+      centerPint = Offset(
+        renderBox.localToGlobal(Offset.zero).dx + renderBox.size.width / 2,
+        renderBox.localToGlobal(Offset.zero).dy + renderBox.size.height / 2,
+      );
 
-      setWidth = renderBox.size.width;
-      setHeight = renderBox.size.height;
+      setSize = renderBox.size;
     });
 
     super.initState();
   }
 
   void _onTranslateStartHandler(dragDetails) {
-    startLocationX = dragDetails.globalPosition.dx;
-    startLocationY = dragDetails.globalPosition.dy;
+    startPoint = dragDetails.globalPosition;
   }
 
   void _onRotateHandler(dragUpdateDetails) {
     setState(() {
-      double endLocationX = dragUpdateDetails.globalPosition.dx;
-      double endLocationY = dragUpdateDetails.globalPosition.dy;
+      Offset endPoint = dragUpdateDetails.globalPosition;
 
-      double m1 = startLocationY - centerPointY == 0
+      double m1 = startPoint.dy - centerPint.dy == 0
           ? 0
-          : (startLocationX - centerPointX) / (startLocationY - centerPointY);
-      double m2 = endLocationY - centerPointY == 0
+          : (startPoint.dx - centerPint.dx) / (startPoint.dy - centerPint.dy);
+      double m2 = endPoint.dy - centerPint.dy == 0
           ? 0
-          : (endLocationX - centerPointX) / (endLocationY - centerPointY);
+          : (endPoint.dx - centerPint.dx) / (endPoint.dy - centerPint.dy);
 
       double angle = (m1 - m2) / (1 + m1 * m2);
 
       matrix = matrix..rotateZ(angle);
-      startLocationX = endLocationX;
-      startLocationY = endLocationY;
+      startPoint = endPoint;
     });
+
+    if (widget.onTransform != null) {
+      widget.onTransform(matrix);
+    }
   }
 
   void _onTranslateHandler(DragUpdateDetails dragUpdateDetails) {
     setState(() {
       double endLocationX = dragUpdateDetails.delta.dx;
       double endLocationY = dragUpdateDetails.delta.dy;
-      centerPointX += endLocationX;
-      centerPointY += endLocationY;
+      centerPint += dragUpdateDetails.delta;
 
       matrix = matrix..translate(endLocationX, endLocationY);
     });
+
+    if (widget.onTransform != null) {
+      widget.onTransform(matrix);
+    }
   }
 
   void _onResizeHandler(dragUpdateDetails) {
-    double endLocationX = dragUpdateDetails.globalPosition.dx;
-    double endLocationY = dragUpdateDetails.globalPosition.dy;
+    Offset endLocation = dragUpdateDetails.globalPosition;
 
     setState(() {
-      setWidth = width + (endLocationX - startLocationX);
-      setHeight = height + (endLocationY - startLocationY);
+      setSize = Size(
+        size.width + (endLocation.dx - startPoint.dx),
+        size.height + (endLocation.dy - startPoint.dy),
+      );
 
-      startLocationX = endLocationX;
-      startLocationY = endLocationY;
+      startPoint = endLocation;
     });
+
+    if (widget.onResize != null) {
+      widget.onResize(size);
+    }
   }
 
   @override
@@ -120,59 +127,60 @@ class _TransformableFrameState extends State<TransformableFrame> {
     return Transform(
       transform: matrix,
       alignment: FractionalOffset.center,
-      child: Container(
-        key: key,
-        height: height,
-        width: width,
-        child: Stack(
-          children: [
-            Container(
-              child: widget.child,
-              margin: EdgeInsets.all(5),
-              height: double.infinity,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.black12),
-                borderRadius: BorderRadius.circular(10),
+      child: GestureDetector(
+        onPanStart: _onTranslateStartHandler,
+        onPanUpdate: _onTranslateHandler,
+        child: Container(
+          key: key,
+          height: size.height,
+          width: size.width,
+          child: Stack(
+            children: [
+              Container(
+                child: widget.child,
+                margin: EdgeInsets.all(5),
+                height: double.infinity,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  border:
+                      widget.visable ? Border.all(color: Colors.black12) : null,
+                ),
               ),
-            ),
-            Stack(
-              children: [
-                Align(
-                  alignment: Alignment.bottomLeft,
-                  child: GestureDetector(
-                    onPanStart: _onTranslateStartHandler,
-                    onPanUpdate: _onRotateHandler,
-                    child: _Handler(Icons.rotate_right),
-                  ),
+              Visibility(
+                visible: widget.visable,
+                child: Stack(
+                  children: [
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: GestureDetector(
+                        onPanStart: _onTranslateStartHandler,
+                        onPanUpdate: _onRotateHandler,
+                        child: _Handler(Icons.rotate_right),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: GestureDetector(
+                        onPanStart: _onTranslateStartHandler,
+                        onPanUpdate: _onResizeHandler,
+                        child: Transform.rotate(
+                          angle: 40,
+                          child: _Handler(Icons.zoom_out_map),
+                        ),
+                      ),
+                    ),
+                    Align(
+                      alignment: Alignment.topRight,
+                      child: GestureDetector(
+                        onTap: widget.onClose,
+                        child: _Handler(Icons.close),
+                      ),
+                    ),
+                  ],
                 ),
-                Align(
-                  alignment: Alignment.topLeft,
-                  child: GestureDetector(
-                    onPanStart: _onTranslateStartHandler,
-                    onPanUpdate: _onTranslateHandler,
-                    child: _Handler(Icons.open_with),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: GestureDetector(
-                    onPanStart: _onTranslateStartHandler,
-                    onPanUpdate: _onResizeHandler,
-                    child: _Handler(Icons.zoom_out_map),
-                  ),
-                ),
-                Align(
-                  alignment: Alignment.topRight,
-                  child: GestureDetector(
-                    onTap: () =>
-                        widget.onCloseTap == null ? null : widget.onCloseTap,
-                    child: _Handler(Icons.close),
-                  ),
-                ),
-              ],
-            ),
-          ],
+              ),
+            ],
+          ),
         ),
       ),
     );
