@@ -27,6 +27,7 @@ class TransformableFrame extends StatefulWidget {
 
 class _TransformableFrameState extends State<TransformableFrame> {
   final Size minSize = Size(35, 35);
+  bool _visable;
 
   Matrix4 matrix = Matrix4.identity();
   GlobalKey key = GlobalKey();
@@ -48,6 +49,7 @@ class _TransformableFrameState extends State<TransformableFrame> {
 
   @override
   void initState() {
+    _visable = widget.visable;
     size = Size(widget.width, widget.height);
 
     /// Initialize frame size
@@ -63,10 +65,6 @@ class _TransformableFrameState extends State<TransformableFrame> {
     });
 
     super.initState();
-  }
-
-  void _onTranslateStartHandler(dragDetails) {
-    startPoint = dragDetails.globalPosition;
   }
 
   void _onRotateHandler(dragUpdateDetails) {
@@ -91,6 +89,10 @@ class _TransformableFrameState extends State<TransformableFrame> {
     }
   }
 
+  void _onTranslateStartHandler(dragDetails) {
+    startPoint = dragDetails.globalPosition;
+  }
+
   void _onTranslateHandler(DragUpdateDetails dragUpdateDetails) {
     setState(() {
       double endLocationX = dragUpdateDetails.delta.dx;
@@ -98,6 +100,7 @@ class _TransformableFrameState extends State<TransformableFrame> {
       centerPint += dragUpdateDetails.delta;
 
       matrix = matrix..translate(endLocationX, endLocationY);
+      _visable = false;
     });
 
     if (widget.onTransform != null) {
@@ -130,6 +133,8 @@ class _TransformableFrameState extends State<TransformableFrame> {
       child: GestureDetector(
         onPanStart: _onTranslateStartHandler,
         onPanUpdate: _onTranslateHandler,
+        onPanEnd: (_) =>
+            setState(() => _visable = !widget.visable ? false : true),
         child: Container(
           key: key,
           height: size.height,
@@ -142,12 +147,11 @@ class _TransformableFrameState extends State<TransformableFrame> {
                 height: double.infinity,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  border:
-                      widget.visable ? Border.all(color: Colors.black12) : null,
+                  border: _visable ? Border.all(color: Colors.black12) : null,
                 ),
               ),
               Visibility(
-                visible: widget.visable,
+                visible: _visable,
                 child: Stack(
                   children: [
                     Align(
