@@ -4,17 +4,17 @@ import 'package:flutter/material.dart';
 
 class TransformableFrame extends StatefulWidget {
   final Widget child;
-  final Function onClose;
-  final Function(Size) onResize;
-  final Function(Matrix4) onTransform;
-  final Size size;
-  final Matrix4 matrix;
   final bool visable;
+  final Size? size;
+  final Matrix4? matrix;
+  final Function()? onClose;
+  final Function(Size)? onResize;
+  final Function(Matrix4)? onTransform;
 
   TransformableFrame({
-    @required this.child,
-    this.size,
+    required this.child,
     this.visable = true,
+    this.size,
     this.matrix,
     this.onClose,
     this.onResize,
@@ -27,18 +27,18 @@ class TransformableFrame extends StatefulWidget {
 
 class _TransformableFrameState extends State<TransformableFrame> {
   final Size minSize = Size(35, 35);
-  bool _visable;
+  late bool _visable;
 
-  Matrix4 matrix;
+  late Matrix4 matrix;
   GlobalKey key = GlobalKey();
 
-  Offset centerPint;
+  late Offset centerPint;
 
   /// Translate data
-  Offset startPoint;
+  late Offset startPoint;
 
   /// Resize data
-  Size size;
+  late Size size;
 
   set setSize(Size value) {
     size = Size(
@@ -54,8 +54,8 @@ class _TransformableFrameState extends State<TransformableFrame> {
     size = widget.size ?? Size(double.infinity, double.infinity);
 
     /// Initialize frame size
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      RenderBox renderBox = key.currentContext.findRenderObject();
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      final renderBox = key.currentContext!.findRenderObject() as RenderBox;
 
       centerPint = Offset(
         renderBox.localToGlobal(Offset.zero).dx + renderBox.size.width / 2,
@@ -86,7 +86,7 @@ class _TransformableFrameState extends State<TransformableFrame> {
     });
 
     if (widget.onTransform != null) {
-      widget.onTransform(matrix);
+      widget.onTransform!(matrix);
     }
   }
 
@@ -105,7 +105,7 @@ class _TransformableFrameState extends State<TransformableFrame> {
     });
 
     if (widget.onTransform != null) {
-      widget.onTransform(matrix);
+      widget.onTransform!(matrix);
     }
   }
 
@@ -122,7 +122,7 @@ class _TransformableFrameState extends State<TransformableFrame> {
     });
 
     if (widget.onResize != null) {
-      widget.onResize(size);
+      widget.onResize!(size);
     }
   }
 
