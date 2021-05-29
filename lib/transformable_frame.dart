@@ -1,6 +1,7 @@
 library transformable_frame;
 
 import 'package:flutter/material.dart';
+import 'package:matrix4_transform/matrix4_transform.dart';
 
 class TransformableFrame extends StatefulWidget {
   final Widget child;
@@ -30,9 +31,13 @@ class _TransformableFrameState extends State<TransformableFrame> {
   late bool _visable;
 
   late Matrix4 matrix;
+  late Matrix4Transform _matrix4transform;
+  late Matrix4Transform _handlerMatrix4transform;
+  late Matrix4 _handlerMatrix;
+
   GlobalKey key = GlobalKey();
 
-  late Offset centerPint;
+  late Offset centerPint = Offset(0, 0);
 
   /// Translate data
   late Offset startPoint;
@@ -51,24 +56,19 @@ class _TransformableFrameState extends State<TransformableFrame> {
   void initState() {
     _visable = widget.visable;
     matrix = widget.matrix ?? Matrix4.identity();
+    _handlerMatrix = Matrix4.identity();
     size = widget.size ?? Size(double.infinity, double.infinity);
-
-    /// Initialize frame size
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
-      final renderBox = key.currentContext!.findRenderObject() as RenderBox;
-
-      centerPint = Offset(
-        renderBox.localToGlobal(Offset.zero).dx + renderBox.size.width / 2,
-        renderBox.localToGlobal(Offset.zero).dy + renderBox.size.height / 2,
-      );
-
-      setSize = renderBox.size;
-    });
 
     super.initState();
   }
 
-  void _onRotateHandler(dragUpdateDetails) {
+  void _onRotateHandler(DragUpdateDetails dragUpdateDetails) {
+    final renderBox = key.currentContext!.findRenderObject() as RenderBox;
+    centerPint = Offset(
+      renderBox.localToGlobal(Offset.zero).dx,
+      renderBox.localToGlobal(Offset.zero).dy,
+    );
+
     setState(() {
       Offset endPoint = dragUpdateDetails.globalPosition;
 
@@ -94,21 +94,6 @@ class _TransformableFrameState extends State<TransformableFrame> {
     startPoint = dragDetails.globalPosition;
   }
 
-  void _onTranslateHandler(DragUpdateDetails dragUpdateDetails) {
-    setState(() {
-      double endLocationX = dragUpdateDetails.delta.dx;
-      double endLocationY = dragUpdateDetails.delta.dy;
-      centerPint += dragUpdateDetails.delta;
-
-      matrix = matrix..translate(endLocationX, endLocationY);
-      _visable = false;
-    });
-
-    if (widget.onTransform != null) {
-      widget.onTransform!(matrix);
-    }
-  }
-
   void _onResizeHandler(dragUpdateDetails) {
     Offset endLocation = dragUpdateDetails.globalPosition;
 
@@ -132,24 +117,49 @@ class _TransformableFrameState extends State<TransformableFrame> {
       transform: matrix,
       alignment: FractionalOffset.center,
       child: GestureDetector(
-        onPanStart: _onTranslateStartHandler,
-        onPanUpdate: _onTranslateHandler,
-        onPanEnd: (_) =>
-            setState(() => _visable = !widget.visable ? false : true),
+        onScaleStart: (ScaleStartDetails scaleStartDetails) {
+          _matrix4transform = Matrix4Transform.from(matrix);
+          _handlerMatrix4transform = Matrix4Transform.from(_handlerMatrix);
+
+          startPoint = scaleStartDetails.focalPoint;
+        },
+        onScaleUpdate: (ScaleUpdateDetails scaleUpdateDetails) {
+          setState(() {
+            _handlerMatrix = _handlerMatrix4transform
+                .scale(1 / scaleUpdateDetails.scale)
+                .matrix4;
+
+            _visable = false;
+            matrix = _matrix4transform
+                .rotate(scaleUpdateDetails.rotation)
+                .scale(scaleUpdateDetails.scale)
+                .translate(
+                  x: scaleUpdateDetails.focalPoint.dx - startPoint.dx,
+                  y: scaleUpdateDetails.focalPoint.dy - startPoint.dy,
+                )
+                .matrix4;
+          });
+        },
+        onScaleEnd: (ScaleEndDetails onPanEnd) {
+          if (widget.onTransform != null) {
+            widget.onTransform!(matrix);
+          }
+
+          setState(() => _visable = !widget.visable ? false : true);
+        },
         child: Container(
-          key: key,
           height: size.height,
           width: size.width,
+          decoration: BoxDecoration(
+            border: _visable ? Border.all(color: Colors.black) : null,
+          ),
           child: Stack(
             children: [
               Container(
                 child: widget.child,
-                margin: EdgeInsets.all(5),
+                // margin: EdgeInsets.all(5),
                 height: double.infinity,
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  border: _visable ? Border.all(color: Colors.black12) : null,
-                ),
               ),
               Visibility(
                 visible: _visable,
@@ -157,28 +167,45 @@ class _TransformableFrameState extends State<TransformableFrame> {
                   children: [
                     Align(
                       alignment: Alignment.bottomLeft,
-                      child: GestureDetector(
-                        onPanStart: _onTranslateStartHandler,
-                        onPanUpdate: _onRotateHandler,
-                        child: _Handler(Icons.rotate_right),
+                      child: Transform(
+                        transform: _handlerMatrix,
+                        child: GestureDetector(
+                          onPanStart: _onTranslateStartHandler,
+                          onPanUpdate: _onRotateHandler,
+                          child: _Handler(Icons.rotate_right),
+                        ),
                       ),
                     ),
                     Align(
                       alignment: Alignment.bottomRight,
-                      child: GestureDetector(
-                        onPanStart: _onTranslateStartHandler,
-                        onPanUpdate: _onResizeHandler,
-                        child: _Handler(Icons.zoom_out_map),
+                      child: Transform(
+                        transform: _handlerMatrix,
+                        child: GestureDetector(
+                          onPanStart: _onTranslateStartHandler,
+                          onPanUpdate: _onResizeHandler,
+                          child: _Handler(Icons.zoom_out_map),
+                        ),
                       ),
                     ),
                     Align(
                       alignment: Alignment.topRight,
-                      child: GestureDetector(
-                        onTap: widget.onClose,
-                        child: _Handler(Icons.close),
+                      child: Transform(
+                        transform: _handlerMatrix,
+                        child: GestureDetector(
+                          onTap: widget.onClose,
+                          child: _Handler(Icons.close),
+                        ),
                       ),
                     ),
                   ],
+                ),
+              ),
+              // Find center point from this widget
+              Center(
+                child: Container(
+                  key: key,
+                  width: 1,
+                  height: 1,
                 ),
               ),
             ],
