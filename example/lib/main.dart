@@ -31,31 +31,29 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       body: SafeArea(
         child: Container(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
           color: Colors.black12,
-          child: Center(
-            child: Stack(
-              children: <Widget>[
-                // Transformable(
-                //   child: Image.asset(
-                //     'assets/5.png',
-                //     fit: BoxFit.fill,
-                //   ),
-                // ),
-                Center(
-                  child: TransformableFrame(
-                    visable: true,
-                    size: Size(300, 300),
-                    onClose: () {
-                      print('object');
-                    },
-                    child: Image.asset(
-                      'assets/5.png',
-                      fit: BoxFit.fill,
-                    ),
-                  ),
+          child: Stack(
+            children: <Widget>[
+              // Transformable(
+              //   child: Image.asset(
+              //     'assets/5.png',
+              //     fit: BoxFit.fill,
+              //   ),
+              // ),
+              TransformableFrame(
+                visable: true,
+                size: Size(300, 300),
+                onClose: () {
+                  print('object');
+                },
+                child: Image.asset(
+                  'assets/5.png',
+                  fit: BoxFit.fill,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

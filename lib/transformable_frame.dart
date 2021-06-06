@@ -132,7 +132,7 @@ class _TransformableFrameState extends State<TransformableFrame> {
             _visable = false;
             matrix = _matrix4transform
                 .rotate(scaleUpdateDetails.rotation)
-                .scale(scaleUpdateDetails.scale)
+                // .scale(scaleUpdateDetails.scale)
                 .translate(
                   x: scaleUpdateDetails.focalPoint.dx - startPoint.dx,
                   y: scaleUpdateDetails.focalPoint.dy - startPoint.dy,
@@ -150,16 +150,16 @@ class _TransformableFrameState extends State<TransformableFrame> {
         child: Container(
           height: size.height,
           width: size.width,
-          decoration: BoxDecoration(
-            border: _visable ? Border.all(color: Colors.black) : null,
-          ),
           child: Stack(
             children: [
               Container(
                 child: widget.child,
-                // margin: EdgeInsets.all(5),
+                margin: EdgeInsets.all(5),
                 height: double.infinity,
                 width: double.infinity,
+                decoration: BoxDecoration(
+                  border: _visable ? Border.all(color: Colors.grey) : null,
+                ),
               ),
               Visibility(
                 visible: _visable,
@@ -167,34 +167,25 @@ class _TransformableFrameState extends State<TransformableFrame> {
                   children: [
                     Align(
                       alignment: Alignment.bottomLeft,
-                      child: Transform(
-                        transform: _handlerMatrix,
-                        child: GestureDetector(
-                          onPanStart: _onTranslateStartHandler,
-                          onPanUpdate: _onRotateHandler,
-                          child: _Handler(Icons.rotate_right),
-                        ),
+                      child: GestureDetector(
+                        onPanStart: _onTranslateStartHandler,
+                        onPanUpdate: _onRotateHandler,
+                        child: _Handler(Icons.rotate_right),
                       ),
                     ),
                     Align(
                       alignment: Alignment.bottomRight,
-                      child: Transform(
-                        transform: _handlerMatrix,
-                        child: GestureDetector(
-                          onPanStart: _onTranslateStartHandler,
-                          onPanUpdate: _onResizeHandler,
-                          child: _Handler(Icons.zoom_out_map),
-                        ),
+                      child: GestureDetector(
+                        onPanStart: _onTranslateStartHandler,
+                        onPanUpdate: _onResizeHandler,
+                        child: _Handler(Icons.zoom_out_map),
                       ),
                     ),
                     Align(
                       alignment: Alignment.topRight,
-                      child: Transform(
-                        transform: _handlerMatrix,
-                        child: GestureDetector(
-                          onTap: widget.onClose,
-                          child: _Handler(Icons.close),
-                        ),
+                      child: GestureDetector(
+                        onTap: widget.onClose,
+                        child: _Handler(Icons.close),
                       ),
                     ),
                   ],
