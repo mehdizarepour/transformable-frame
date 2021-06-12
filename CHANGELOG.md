@@ -1,3 +1,7 @@
+## 0.1.2
+
+Fix Frame visability on transform
+
 ## 0.1.1
 
 Fix handler transform issue

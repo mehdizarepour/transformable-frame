@@ -158,7 +158,7 @@ class _TransformableFrameState extends State<TransformableFrame> {
                 height: double.infinity,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  border: _visable ? Border.all(color: Colors.grey) : null,
+                  border: Border.all(color: Colors.grey),
                 ),
               ),
               Visibility(
