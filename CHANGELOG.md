@@ -1,5 +1,9 @@
 ## 0.1.4
 
+Call `onTransform` on `onScaleUpdate`
+
+## 0.1.4
+
 Fix visability state
 
 ## 0.1.3
