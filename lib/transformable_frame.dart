@@ -143,6 +143,10 @@ class _TransformableFrameState extends State<TransformableFrame> {
                 )
                 .matrix4;
           });
+
+          if (widget.onTransform != null) {
+            widget.onTransform!(matrix);
+          }
         },
         onScaleEnd: (ScaleEndDetails onPanEnd) {
           if (widget.onTransform != null) {
