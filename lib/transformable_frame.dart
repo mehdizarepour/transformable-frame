@@ -56,7 +56,6 @@ class _TransformableFrameState extends State<TransformableFrame> {
 
   @override
   void initState() {
-    _visable = widget.visable;
     matrix = widget.matrix ?? Matrix4.identity();
     _handlerMatrix = Matrix4.identity();
     size = widget.size ?? Size(double.infinity, double.infinity);
@@ -115,6 +114,8 @@ class _TransformableFrameState extends State<TransformableFrame> {
 
   @override
   Widget build(BuildContext context) {
+    _visable = widget.visable;
+
     return Transform(
       transform: matrix,
       alignment: FractionalOffset.center,

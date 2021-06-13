@@ -1,3 +1,7 @@
+## 0.1.4
+
+Fix visability state
+
 ## 0.1.3
 
 Add onTap callback
