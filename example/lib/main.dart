@@ -45,6 +45,9 @@ class _MyHomePageState extends State<MyHomePage> {
               TransformableFrame(
                 visable: true,
                 size: Size(300, 300),
+                onTap: () {
+                  print('Tap');
+                },
                 onClose: () {
                   print('object');
                 },

@@ -8,18 +8,20 @@ class TransformableFrame extends StatefulWidget {
   final bool visable;
   final Size? size;
   final Matrix4? matrix;
+  final Function()? onTap;
   final Function()? onClose;
   final Function(Size)? onResize;
   final Function(Matrix4)? onTransform;
 
   TransformableFrame({
     required this.child,
-    this.visable = true,
     this.size,
+    this.onTap,
     this.matrix,
     this.onClose,
     this.onResize,
     this.onTransform,
+    this.visable = true,
   });
 
   @override
@@ -117,6 +119,7 @@ class _TransformableFrameState extends State<TransformableFrame> {
       transform: matrix,
       alignment: FractionalOffset.center,
       child: GestureDetector(
+        onTap: widget.onTap,
         onScaleStart: (ScaleStartDetails scaleStartDetails) {
           _matrix4transform = Matrix4Transform.from(matrix);
           _handlerMatrix4transform = Matrix4Transform.from(_handlerMatrix);
@@ -158,7 +161,8 @@ class _TransformableFrameState extends State<TransformableFrame> {
                 height: double.infinity,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey),
+                  border:
+                      widget.visable ? Border.all(color: Colors.grey) : null,
                 ),
               ),
               Visibility(
