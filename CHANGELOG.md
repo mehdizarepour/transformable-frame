@@ -1,3 +1,7 @@
+## 0.1.3
+
+Add onTap callback
+
 ## 0.1.2
 
 Fix Frame visability on transform
