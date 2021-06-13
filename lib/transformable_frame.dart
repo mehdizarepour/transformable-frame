@@ -179,7 +179,7 @@ class _TransformableFrameState extends State<TransformableFrame> {
                       child: GestureDetector(
                         onPanStart: _onTranslateStartHandler,
                         onPanUpdate: _onRotateHandler,
-                        child: _Handler(Icons.rotate_right),
+                        child: _buildHandler(Icons.rotate_right),
                       ),
                     ),
                     Align(
@@ -187,14 +187,14 @@ class _TransformableFrameState extends State<TransformableFrame> {
                       child: GestureDetector(
                         onPanStart: _onTranslateStartHandler,
                         onPanUpdate: _onResizeHandler,
-                        child: _Handler(Icons.zoom_out_map),
+                        child: _buildHandler(Icons.zoom_out_map),
                       ),
                     ),
                     Align(
                       alignment: Alignment.topRight,
                       child: GestureDetector(
                         onTap: widget.onClose,
-                        child: _Handler(Icons.close),
+                        child: _buildHandler(Icons.close),
                       ),
                     ),
                   ],
@@ -213,6 +213,16 @@ class _TransformableFrameState extends State<TransformableFrame> {
         ),
       ),
     );
+  }
+
+  Widget _buildHandler(IconData iconData) {
+    final scaleX = matrix.getColumn(0).length;
+    final scaleY = matrix.getColumn(1).length;
+    final scaleZ = matrix.getColumn(2).length;
+    return Transform(
+        transform: Matrix4.identity()
+          ..scale(1 / scaleX, 1 / scaleY, 1 / scaleZ),
+        child: _Handler(iconData));
   }
 }
 
